@@ -1,0 +1,264 @@
+    # here are my tests
+    # below, the cases print a "passed" statement when completed
+    # during the testing phase, else statements were added during
+    # complicaitons. They were removed after the problem was fixed 
+    # to improve readability.
+    # samson was here
+
+    # TESTS FOR SAME DATE OR LATER
+    all_tests_passed = True
+    print()
+    initialize()
+
+    # this tests all possible outputs
+    test = True
+    while test:
+        for m in range(1, 13):
+            for d in range(1, 32):
+                if date_same_or_later(d, m, d, m) == False:
+                    print("failed for", m, d)
+                    all_tests_passed = False
+                    break
+        print("test DSL_all passed")
+        test = False
+    
+    # testing the starting case (january 1st)
+    if date_same_or_later(1, 1, last_update_day, last_update_month) == True:
+        print("test DSL_start passed")
+    else:
+        all_tests_passed = False
+
+    # TESTING THE PURCHASE FUNCTION
+    print()
+    initialize()
+
+    # invalid date purchase via previous purchase
+    purchase(1, 2, 1, "Canada")
+    if purchase(1, 1, 1, "Canada") == 'error':
+        print("test P_ID_P passed")
+    else:
+        all_tests_passed = False
+
+    # invalid date purchase via previous balance check
+    amount_owed(3, 1)
+    if purchase(1, 1, 1, "Canada") == 'error':
+        print("test P_ID_B passed")
+    else:
+        all_tests_passed = False
+
+    # invalid date purchase via paying bill
+    pay_bill(1, 4, 1)
+    if purchase(1, 1, 1, "Canada") == 'error':
+        print("test P_ID_PB passed")
+    else:
+        all_tests_passed = False
+
+    # double checking none of the purchases went through
+    if amount_owed(31, 1) == 0:
+        print("test P_ID_F passed")
+    else:
+        all_tests_passed = False
+
+    # making a purchase with a disabled card on a later date should update the date
+    initialize()
+    purchase(50, 1, 1, "c")
+    purchase(50, 1, 1, "b")
+    purchase(25, 1, 1, "a")     # card is disabled here
+    purchase(0, 1, 12, "pp")
+    if amount_owed(1, 2) == 'error' and amount_owed(1, 12) == 162.8894626777442:
+        print("test P_IDTC passed")
+    else:
+        print(amount_owed(1, 12))   # problem found: interest not applied after card disabled
+        all_tests_passed = False
+
+
+    # disabling the card via three countries
+    initialize()
+    purchase(1, 1, 1, "a")
+    purchase(1, 1, 1, "b")
+    purchase(1, 1, 1, "c")
+    if disabled == True:
+        print("test P_DC_C passed")
+    else:
+        all_tests_passed = False
+    
+    # testing boundary cases of country locking
+    initialize()
+    purchase(1, 1, 1, "a")
+    purchase(1, 1, 1, "b")
+    purchase(1, 1, 1, "b")
+    # disabled_check()
+
+    initialize()
+    purchase(1, 1, 1, "a")
+    purchase(1, 1, 1, "b")
+    purchase(1, 1, 1, "a")
+    # disabled_check()
+
+    initialize()
+    purchase(1, 1, 1, "b")
+    purchase(1, 1, 1, "a")
+    purchase(1, 1, 1, "b")
+    # disabled_check()
+
+    initialize()
+    purchase(1, 1, 1, "a")
+    purchase(1, 1, 1, "a")
+    purchase(1, 1, 1, "b")
+    # disabled_check()
+
+    # making purchases with a disabled card
+    initialize()
+    disabled = True
+    purchase(100, 1, 1, "a")
+    purchase(100, 5, 4, "j")
+    if amount_owed(12, 31) == 0: # remember that this actually updates the program
+        print("test P_CD passed")
+    else:
+        all_tests_passed = False
+    
+    # checks if any of the other variables have been changed
+    # card would have been disabled if previous purchases updated anything
+    disabled = False
+    purchase(100, 12, 31, "q")
+    disabled_check()
+    if amount_owed(12, 31) == 100:
+        print("test P_CD_F passed")
+    else:
+        all_tests_passed = False
+    
+    # WRITE MORE TESTS
+
+    # TESTING FOR THE PAY FUNCTION
+    print()
+    initialize()
+
+    # this tests if paying the exact amount works (including interest)
+    purchase(100, 1, 1, "c")
+    purchase(100, 1, 2, "c")
+    purchase(100, 1, 3, "c")
+    pay_bill(305, 1, 3)
+    if amount_owed(1, 3) == 0:
+        print("test PB_EA passed")
+    else:
+        all_tests_passed = False
+    
+    # this tests that the money paid goes towards the interest amount
+    initialize()
+    purchase(100, 1, 1, "c")
+    purchase(100, 1, 2, "c")
+    purchase(100, 1, 3, "c")
+    pay_bill(105, 1, 3)
+    if amount_owed(1, 3) == 200:
+        print("test PB_IA passed")
+    else:
+        all_tests_passed = False
+    
+    # this tests that the interest amount still recieves interest if
+    # not fully paid off
+    initialize()
+    purchase(100, 1, 1, "c")
+    purchase(100, 1, 2, "c")
+    purchase(100, 1, 3, "c")
+    pay_bill(90, 1, 3)
+    if amount_owed(1, 3) == 215:
+        print("test PB_NFIA passed")
+    else:
+        all_tests_passed = False
+    
+    # continuation (amount leftover still gets interest)
+    initialize()
+    purchase(100, 1, 1, "c")
+    pay_bill(90, 1, 1)          # leftover 10 will recieve interest
+    purchase(100, 1, 2, "c")
+    purchase(100, 1, 3, "c")
+    if amount_owed(1, 3) == 210.5:
+        print("test PB_NFIA_2 passed") 
+    else:
+        all_tests_passed = False
+
+    # more continuation (new amount + old amount gets interest)
+    initialize()
+    purchase(100, 1, 1, "c")
+    pay_bill(90, 1, 1)          # left over 10 will get interest
+    purchase(100, 1, 2, "c")    # this 100 will also get interest
+    purchase(100, 1, 3, "c")    # so will this 
+    purchase(100, 1, 4, "c")
+    purchase(100, 1, 5, "c")
+    if amount_owed(1, 5) == 426.82625:
+        print("test PB_NFIA_3 passed") 
+    else:
+        all_tests_passed = False
+
+    # checks if you pay the bill before a month ends that you wont get
+    # charged interest still
+    initialize()
+    purchase(100, 1, 1, "c")
+    purchase(100, 1, 2, "c")
+    pay_bill(100, 29, 2)
+    purchase(100, 1, 3, "c")
+    if amount_owed(1, 3) == 200:
+        print("test PB_PBFM passed")
+    else:
+        all_tests_passed = False
+
+    # only paying off the additional "interest" amount
+    initialize()
+    purchase(100, 1, 1, "c")    
+    purchase(100, 1, 2, "c")
+    pay_bill(5, 1, 3)           # pays off $5 from jan
+    purchase(100, 1, 3, "c")
+    pay_bill(10, 1, 4)          # pays off $10 from feb and jan
+    if amount_owed(1, 4) == 300:
+        print("test PB_OIM passed")
+    else:
+        print(amount_owed(1, 4))
+        all_tests_passed = False
+
+    # TESTS FOR THE INTEREST FUNCTION
+    print()
+    initialize()
+
+    # checking if exponential growth is correct
+    initialize()
+    purchase(100, 1, 1, "c")    # interest
+    purchase(100, 1, 2, "c")    # interest
+    purchase(100, 1, 3, "c")    # interest
+    purchase(100, 1, 4, "c")    # interest
+    purchase(100, 1, 5, "c")
+    if amount_owed(1, 6) == 552.563125:
+        print("test I_6M passed")
+    else:
+        all_tests_passed = False
+
+    # testing that interest works in the middle of the year?
+    initialize()
+    purchase(100, 1, 8, "c")
+    if amount_owed(1, 12) == 115.76250000000002:
+        print("test I_M passed")
+    else:
+        all_tests_passed = False
+
+    # just a test idk what to call it
+    initialize()
+    purchase(100, 1, 1, "a")
+    purchase(100, 1, 1, "b")
+    purchase(100, 1, 1, "c")        # card disabled
+    purchase(100, 20, 1, "a")       # disabled card still updates day
+    if last_update_day == 20:
+        print("test M_UD passed")
+    else:
+        all_tests_passed = False
+    purchase(100, 17, 4, "a")       # disabled card still updates month
+    purchase(100, 1, 1, "a")        # doesnt update because invalid date
+    if (last_update_day, last_update_month) == (17, 4):
+        print("test M_UMD passed")
+    else:
+        all_tests_passed = False
+
+
+    # final check
+    if all_tests_passed == True:
+        print("nice!")
+    else:
+        print("ERROR AT LEAST ONE FAILED TEST")
