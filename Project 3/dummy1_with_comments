@@ -1,0 +1,193 @@
+'''Semantic Similarity: starter code
+
+Author: Michael Guerzhoy. Last modified: Nov. 18, 2022.
+'''
+
+import math
+import time
+
+
+def norm(vec):
+    '''Return the norm of a vector stored as a dictionary, as
+    described in the handout for Project 3.
+    '''
+
+    sum_of_squares = 0.0
+    for x in vec:
+        sum_of_squares += vec[x] * vec[x]
+
+    return math.sqrt(sum_of_squares)
+
+
+def cosine_similarity(vec1, vec2):
+    dot_pr = 0
+    for key in vec1:
+        if key in vec2:
+            dot_pr += vec1[key]*vec2[key]
+    cos_sim = dot_pr/(norm(vec1)*norm(vec2))
+    return cos_sim
+
+def build_semantic_descriptors(sentences):
+    dict_words = {}
+    for sentence in sentences:
+        for j in range(len(sentence)):
+            if sentence[j] not in dict_words:
+                dict_words[sentence[j]] = {}
+            if sentence[j] not in sentence[:j]:
+                for i in range(len(sentence)):
+                    if sentence[i] != sentence[j] and (sentence[i] not in sentence[:i]):
+                        if sentence[i] not in dict_words[sentence[j]]:
+                            dict_words[sentence[j]][sentence[i]] = 1
+                        else:
+                            dict_words[sentence[j]][sentence[i]] += 1
+            '''for sentword in sentence:
+                if sentword != word:
+                    print(word, sentword)
+                    if sentword not in dict_words[word]:
+                        dict_words[word][sentword] = 1
+                    else:
+                        dict_words[word][sentword] += 1'''
+        '''    for sentence in sentences:
+        for word in sentence:
+            if word not in dict_words:
+                dict_words[word] = {}
+            for i in range(len(sentence)):
+                print(sentence[i] not in sentence[:i], word not in sentence[:i])
+                if sentence[i] != word and (sentence[i] not in sentence[:i]):
+                    if sentence[i] not in dict_words[word]:
+                        dict_words[word][sentence[i]] = 1
+                    else:
+                        dict_words[word][sentence[i]] += 1  '''
+    return dict_words
+
+def build_semantic_descriptors_from_files(filenames):
+    sentences = []
+    j = 0
+    for i in range(len(filenames)):
+        f = open(filenames[i], "r", encoding="latin1")
+        sentences.append([])
+        for line in f:
+            for word in line.replace(',',' ').replace('-',' ').replace('--',' ').replace(':',' ').replace(';',' ').replace('\n', ' ').lower().split():
+                if "." in word or "?" in word or "!" in word:
+                    word = word.replace(".", " ").replace("?", " ").replace("!", " ").split()
+                    for i in range(len(word)):
+                        if i == 0:
+                            sentences[j].append(word[i])
+                            j+=1
+                            sentences.append([])
+                        else:
+                            sentences[j].append(word[i])
+                else:
+                    sentences[j].append(word)
+        if len(sentences[len(sentences)-1]) == 0:
+            sentences.pop(len(sentences)-1)
+    dict_allwords = build_semantic_descriptors(sentences)
+    print(dict_allwords['suspicious'])
+    return dict_allwords
+
+'''def build_semantic_descriptors_from_files(filenames):
+    sentences = []
+    j = 0
+    for i in range(len(filenames)):
+        f = open(filenames[i], "r", encoding="utf8")
+        sentences.append([])
+        for line in f:
+            for word in line.lower().split():
+            #for word in line.replace(',','').replace('-','').replace('--','').replace(':','').replace(';','').replace('\n', '').lower().split():
+
+                if "." in word or "?" in word or "!" in word:
+                    #word = word.strip(".").strip("?").strip("!")
+                    word = word.replace(".", "").replace("?", "").replace("!", "")
+                    sentences[j].append(word)
+                    j+=1
+                    sentences.append([])
+                else:
+                    word = word.replace(',','').replace('-','').replace('--','').replace(':','').replace(';','').replace('\n', '')
+                    sentences[j].append(word)
+        if len(sentences[len(sentences)-1]) == 0:
+            sentences.pop(len(sentences)-1)
+    dict_allwords = build_semantic_descriptors(sentences)
+    return dict_allwords'''
+
+def most_similar_word(word, choices, semantic_descriptors, similarity_fn):
+    '''vec1 = semantic_descriptors[word]
+    results = []
+    for i in range(len(choices)):
+        if choices[i] not in semantic_descriptors:
+            results.append(-1)
+        else:
+            vec2 = semantic_descriptors[choices[i]]
+            results.append(similarity_fn(vec1, vec2))
+    max_res = -2
+    max_ind = 0
+    for i in range(len(results)):
+        if results[i] > max_res:
+            max_res = results[i]
+            max_ind = i
+    return choices[max_ind]'''
+
+    ### IF THE WORD HAS A DICTIONARY THAT HAS NO VALUE, IT IS NULL!!!!!
+
+    # if both word and choice exist, then compute using similarity_fn and return the highest score
+    # if word does not exist, all choices are -1 and return word
+    # if choice does not exist, that choice gets -1 and return the highest score
+    # if all choices do not exist, all choices get -1 and return word
+    # if word is a dictionary with 0 values, all choices are -1 and return word
+
+    '''results = []
+    if word not in semantic_descriptors:
+        return choices[0]
+    for i in range(len(choices)):
+        in_dict = False
+        if choices[i] in semantic_descriptors:
+            in_dict = True
+    if in_dict == False:
+        return choices[0]
+    for i in range(len(choices)):
+        if choices[i] not in semantic_descriptors:
+            results.append(-1)
+        else:
+            vec1 = semantic_descriptors[word]
+            vec2 = semantic_descriptors[choices[i]]
+            results.append(similarity_fn(vec1, vec2))
+    max_res = -100000
+    max_ind = 0
+    for i in range(len(results)):
+        if results[i] > max_res:
+            max_res = results[i]
+            max_ind = i
+    return choices[max_ind]'''
+    results = []
+    for i in range(len(choices)):
+        if choices[i] not in semantic_descriptors or word not in semantic_descriptors or len(semantic_descriptors[word]) == 0:
+            results.append(-1)
+        else:
+            vec1 = semantic_descriptors[word]
+            vec2 = semantic_descriptors[choices[i]]
+            results.append(similarity_fn(vec1, vec2))
+    max_res = -100000
+    max_ind = 0
+    for i in range(len(results)):
+        if results[i] > max_res:
+            max_res = results[i]
+            max_ind = i
+    return choices[max_ind]
+
+def run_similarity_test(filename, semantic_descriptors, similarity_fn):
+    f = open(filename, "r")
+    total = 0
+    correct = 0
+    for line in f:
+        split_line = line.split()
+        guess = most_similar_word(split_line[0], split_line[2:], semantic_descriptors, similarity_fn)
+        if guess == split_line[1]:
+            correct += 1
+        total+=1
+    return correct*100/total
+
+#build_semantic_descriptors_from_files(["bleh.txt"])
+#sem_descriptors = build_semantic_descriptors_from_files(["wp.txt", "sw.txt", "text3.txt", "text4.txt", "text5.txt", "text6.txt"])
+#sem_descriptors = build_semantic_descriptors_from_files(["wp.txt"])
+sem_descriptors = build_semantic_descriptors_from_files(["wp.txt", "sw.txt"])
+res = run_similarity_test("test.txt", sem_descriptors, cosine_similarity)
+print(res, "of the guesses were correct")
